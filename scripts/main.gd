@@ -29,6 +29,7 @@ var skill_cd_max := 14.0
 
 var is_mobile_mode := false
 var auto_timer: Timer
+var waiting_for_wave_clear := false
 
 var build_slots: Array[Vector3] = [
 	Vector3(0, 0.6, 0),
@@ -174,9 +175,10 @@ func _on_spawn_timer_timeout() -> void:
 		return
 	if spawned_in_wave >= enemies_per_wave:
 		spawn_timer.stop()
-		wave_timer.start()
+		waiting_for_wave_clear = true
+		_update_ui("Wave %d 정리 중..." % wave)
 		return
-	if is_mobile_mode and enemies.get_child_count() > 32:
+	if is_mobile_mode and enemies.get_child_count() > 20:
 		return
 	spawned_in_wave += 1
 	_spawn_enemy()
@@ -185,9 +187,10 @@ func _on_wave_timer_timeout() -> void:
 	if game_over:
 		return
 	wave += 1
+	waiting_for_wave_clear = false
 	spawned_in_wave = 0
 	enemies_per_wave += 2
-	spawn_interval = max(0.45, spawn_interval * 0.95)
+	spawn_interval = max(0.55, spawn_interval * 0.95)
 	spawn_timer.wait_time = spawn_interval
 	gold += 30 + wave * 4
 	score += 15
@@ -227,13 +230,16 @@ func _process(delta: float) -> void:
 	if game_over:
 		return
 	skill_cd = max(0.0, skill_cd - delta)
+	if waiting_for_wave_clear and enemies.get_child_count() == 0 and wave_timer.is_stopped():
+		wave_timer.start()
 	if not is_instance_valid(base):
 		return
 	var hp_text = "Base HP: %d" % int(base.hp)
 	var cd_text = "Nova: READY" if skill_cd <= 0.0 else "Nova: %.1fs" % skill_cd
 	if is_mobile_mode:
 		nova_button.text = "⚡ NOVA READY" if skill_cd <= 0.0 else "⚡ NOVA %.1fs" % skill_cd
-		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\n아래 버튼으로 조작하세요" % [wave, score, gold, hp_text, cd_text]
+		var phase_text = "정리 중" if waiting_for_wave_clear else "전투 중"
+		ui_label.text = "Wave %d(%s) | Score %d | Gold %d\n%s | %s\n아래 버튼으로 조작하세요" % [wave, phase_text, score, gold, hp_text, cd_text]
 	else:
 		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\nBuild 1-6 (%dG) / Upgrade QWERTY (%dG) / Space Nova" % [wave, score, gold, hp_text, cd_text, turret_cost, turret_upgrade_cost]
 
