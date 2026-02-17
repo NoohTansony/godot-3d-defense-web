@@ -24,6 +24,9 @@ var turret_upgrade_cost := 85
 var skill_cd := 0.0
 var skill_cd_max := 14.0
 
+var is_mobile_mode := false
+var auto_timer: Timer
+
 var build_slots: Array[Vector3] = [
 	Vector3(0, 0.6, 0),
 	Vector3(4.5, 0.6, 0),
@@ -36,6 +39,8 @@ var placed_turrets: Array = []
 
 func _ready() -> void:
 	randomize()
+	is_mobile_mode = DisplayServer.is_touchscreen_available() or OS.has_feature("web_android") or OS.has_feature("web_ios")
+
 	spawn_timer.wait_time = spawn_interval
 	wave_timer.wait_time = wave_gap
 	spawn_timer.timeout.connect(_on_spawn_timer_timeout)
@@ -45,13 +50,47 @@ func _ready() -> void:
 	placed_turrets.resize(build_slots.size())
 	_build_turret_at_slot(0)
 
+	if is_mobile_mode:
+		_apply_mobile_tuning()
+
 	_update_ui("Wave 1 시작")
 	spawn_timer.start()
+
+func _apply_mobile_tuning() -> void:
+	# 모바일은 조작을 단순화하고 약간 가볍게 설정
+	turret_cost = 60
+	turret_upgrade_cost = 75
+	skill_cd_max = 10.0
+	enemies_per_wave = 7
+	spawn_interval = 1.75
+	spawn_timer.wait_time = spawn_interval
+	ui_label.theme_override_font_sizes.font_size = 28
+
+	auto_timer = Timer.new()
+	auto_timer.wait_time = 2.4
+	auto_timer.one_shot = false
+	auto_timer.timeout.connect(_mobile_auto_build_or_upgrade)
+	add_child(auto_timer)
+	auto_timer.start()
+
+	# 초반 답답함 방지
+	_build_turret_at_slot(1)
 
 func _input(event: InputEvent) -> void:
 	if game_over:
 		if event.is_action_pressed("ui_accept"):
 			get_tree().reload_current_scene()
+		if event is InputEventScreenTouch and event.pressed:
+			get_tree().reload_current_scene()
+		return
+
+	if is_mobile_mode and event is InputEventScreenTouch and event.pressed:
+		# 모바일: 왼쪽 터치=빌드/업그레이드, 오른쪽 터치=Nova
+		var w = get_viewport().get_visible_rect().size.x
+		if event.position.x < w * 0.55:
+			_mobile_auto_build_or_upgrade()
+		else:
+			_cast_nova_skill()
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
@@ -69,6 +108,26 @@ func _input(event: InputEvent) -> void:
 			KEY_T: _upgrade_turret_at_slot(4)
 			KEY_Y: _upgrade_turret_at_slot(5)
 			KEY_SPACE: _cast_nova_skill()
+
+func _mobile_auto_build_or_upgrade() -> void:
+	if game_over:
+		return
+	# 빈 슬롯이 있으면 먼저 빌드
+	for i in range(build_slots.size()):
+		if (placed_turrets[i] == null or not is_instance_valid(placed_turrets[i])) and gold >= turret_cost:
+			_build_turret_at_slot(i)
+			return
+	# 다 찼으면 가장 낮은 레벨 업그레이드
+	var best_idx := -1
+	var best_level := 999
+	for i in range(placed_turrets.size()):
+		var t = placed_turrets[i]
+		if t != null and is_instance_valid(t):
+			if t.level < best_level:
+				best_level = t.level
+				best_idx = i
+	if best_idx >= 0 and gold >= turret_upgrade_cost:
+		_upgrade_turret_at_slot(best_idx)
 
 func _build_turret_at_slot(idx: int) -> void:
 	if idx < 0 or idx >= build_slots.size():
@@ -111,6 +170,8 @@ func _on_spawn_timer_timeout() -> void:
 		spawn_timer.stop()
 		wave_timer.start()
 		return
+	if is_mobile_mode and enemies.get_child_count() > 32:
+		return
 	spawned_in_wave += 1
 	_spawn_enemy()
 
@@ -152,7 +213,9 @@ func _on_base_destroyed() -> void:
 	game_over = true
 	spawn_timer.stop()
 	wave_timer.stop()
-	ui_label.text = "GAME OVER\n점수: %d | Wave: %d\nEnter로 재시작" % [score, wave]
+	if is_instance_valid(auto_timer):
+		auto_timer.stop()
+	ui_label.text = "GAME OVER\n점수: %d | Wave: %d\n터치 또는 Enter로 재시작" % [score, wave]
 
 func _process(delta: float) -> void:
 	if game_over:
@@ -162,7 +225,10 @@ func _process(delta: float) -> void:
 		return
 	var hp_text = "Base HP: %d" % int(base.hp)
 	var cd_text = "Nova: READY" if skill_cd <= 0.0 else "Nova: %.1fs" % skill_cd
-	ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\nBuild 1-6 (%dG) / Upgrade QWERTY (%dG) / Space Nova" % [wave, score, gold, hp_text, cd_text, turret_cost, turret_upgrade_cost]
+	if is_mobile_mode:
+		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\n왼쪽 터치: 자동 빌드/업글  |  오른쪽 터치: Nova" % [wave, score, gold, hp_text, cd_text]
+	else:
+		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\nBuild 1-6 (%dG) / Upgrade QWERTY (%dG) / Space Nova" % [wave, score, gold, hp_text, cd_text, turret_cost, turret_upgrade_cost]
 
 func _update_ui(prefix := "") -> void:
 	if prefix != "":
