@@ -8,6 +8,9 @@ var base_node: Node3D
 var target_group := "enemy"
 var cooldown := 0.0
 
+var level := 1
+var bullet_damage := 10
+
 func _process(delta: float) -> void:
 	cooldown -= delta
 	var target = _find_target()
@@ -35,4 +38,12 @@ func _fire(target: Node3D) -> void:
 	var b = bullet_scene.instantiate()
 	b.global_position = global_position + Vector3(0, 0.5, 0)
 	b.target = target
+	b.set("damage", bullet_damage)
 	get_tree().current_scene.add_child(b)
+
+func upgrade() -> void:
+	level += 1
+	bullet_damage += 7
+	range += 0.9
+	fire_rate = max(0.14, fire_rate * 0.92)
+	scale = Vector3.ONE * (1.0 + level * 0.08)

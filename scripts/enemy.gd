@@ -9,6 +9,8 @@ signal died(points: int)
 
 var base_node: Node3D
 
+@onready var body_mesh: MeshInstance3D = $Body
+
 func _ready() -> void:
 	add_to_group("enemy")
 
@@ -31,3 +33,30 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		died.emit(points)
 		queue_free()
+
+func setup_variant(kind: int, wave: int) -> void:
+	# 0=normal, 1=fast, 2=tank
+	var mat := StandardMaterial3D.new()
+	match kind:
+		1:
+			speed = 4.2 + wave * 0.03
+			hp = int(12 + wave * 1.5)
+			touch_damage = 6
+			points = 12
+			scale = Vector3.ONE * 0.85
+			mat.albedo_color = Color(0.95, 0.78, 0.25)
+		2:
+			speed = 1.9 + wave * 0.02
+			hp = int(40 + wave * 6)
+			touch_damage = 14
+			points = 20
+			scale = Vector3.ONE * 1.25
+			mat.albedo_color = Color(0.8, 0.33, 0.35)
+		_:
+			speed = 2.8 + wave * 0.02
+			hp = int(20 + wave * 3)
+			touch_damage = 8
+			points = 10
+			scale = Vector3.ONE
+			mat.albedo_color = Color(0.5, 0.7, 0.95)
+	body_mesh.material_override = mat
