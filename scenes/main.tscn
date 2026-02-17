@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/base.gd" id="2"]
@@ -7,20 +7,44 @@
 
 [sub_resource type="Environment" id="1"]
 background_mode = 1
-background_color = Color(0.09, 0.12, 0.16, 1)
+background_color = Color(0.05, 0.07, 0.1, 1)
 ambient_light_source = 2
-ambient_light_color = Color(0.5, 0.53, 0.6, 1)
+ambient_light_color = Color(0.53, 0.58, 0.7, 1)
+ambient_light_energy = 0.7
 
 [sub_resource type="StandardMaterial3D" id="2"]
-albedo_color = Color(0.18, 0.45, 0.22, 1)
+albedo_color = Color(0.09, 0.13, 0.17, 1)
+roughness = 0.85
 
-[sub_resource type="PlaneMesh" id="3"]
-size = Vector2(50, 50)
+[sub_resource type="StandardMaterial3D" id="3"]
+albedo_color = Color(0.2, 0.26, 0.33, 1)
+metallic = 0.35
+roughness = 0.45
 
-[sub_resource type="CylinderMesh" id="4"]
-height = 1.0
-bottom_radius = 1.2
-top_radius = 1.2
+[sub_resource type="StandardMaterial3D" id="4"]
+albedo_color = Color(0.22, 0.8, 0.95, 0.3)
+transparency = 1
+emission_enabled = true
+emission = Color(0.11, 0.39, 0.45, 1)
+
+[sub_resource type="PlaneMesh" id="5"]
+size = Vector2(52, 52)
+
+[sub_resource type="CylinderMesh" id="6"]
+height = 1.1
+bottom_radius = 1.25
+top_radius = 1.25
+
+[sub_resource type="TorusMesh" id="7"]
+ring_radius = 2.1
+pipe_radius = 0.12
+rings = 48
+ring_segments = 16
+
+[sub_resource type="CylinderMesh" id="8"]
+height = 0.08
+bottom_radius = 0.78
+top_radius = 0.78
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1")
@@ -31,30 +55,76 @@ turret_scene = ExtResource("4")
 environment = SubResource("1")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
-rotation = Vector3(-0.9, 0.4, 0)
-light_energy = 1.2
+rotation = Vector3(-0.92, 0.4, 0)
+light_energy = 1.4
+shadow_enabled = true
+
+[node name="FillLight" type="OmniLight3D" parent="."]
+position = Vector3(0, 7, 0)
+light_color = Color(0.35, 0.55, 0.7, 1)
+light_energy = 1.8
+omni_range = 24.0
 
 [node name="Camera3D" type="Camera3D" parent="."]
-position = Vector3(0, 23, 20)
-rotation = Vector3(-0.75, 0, 0)
+position = Vector3(0, 26, 18)
+rotation = Vector3(-0.95, 0, 0)
 current = true
 
 [node name="Ground" type="MeshInstance3D" parent="."]
-mesh = SubResource("3")
+mesh = SubResource("5")
 material_override = SubResource("2")
 
 [node name="Base" type="Node3D" parent="."]
 script = ExtResource("2")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Base"]
-mesh = SubResource("4")
+mesh = SubResource("6")
+material_override = SubResource("3")
+
+[node name="Aura" type="MeshInstance3D" parent="Base"]
+position = Vector3(0, 0.6, 0)
+rotation = Vector3(1.5708, 0, 0)
+mesh = SubResource("7")
+material_override = SubResource("4")
 
 [node name="HPLabel3D" type="Label3D" parent="Base"]
-position = Vector3(0, 1.8, 0)
+position = Vector3(0, 1.9, 0)
 pixel_size = 0.01
 text = "BASE HP: 100"
 
 [node name="Turrets" type="Node3D" parent="."]
+
+[node name="SlotMarkers" type="Node3D" parent="."]
+
+[node name="Slot1" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(0, 0.05, 0)
+mesh = SubResource("8")
+material_override = SubResource("4")
+
+[node name="Slot2" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(4.5, 0.05, 0)
+mesh = SubResource("8")
+material_override = SubResource("4")
+
+[node name="Slot3" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(-4.5, 0.05, 0)
+mesh = SubResource("8")
+material_override = SubResource("4")
+
+[node name="Slot4" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(0, 0.05, 4.5)
+mesh = SubResource("8")
+material_override = SubResource("4")
+
+[node name="Slot5" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(0, 0.05, -4.5)
+mesh = SubResource("8")
+material_override = SubResource("4")
+
+[node name="Slot6" type="MeshInstance3D" parent="SlotMarkers"]
+position = Vector3(3.2, 0.05, 3.2)
+mesh = SubResource("8")
+material_override = SubResource("4")
 
 [node name="Enemies" type="Node3D" parent="."]
 
@@ -69,9 +139,35 @@ autostart = false
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 
 [node name="InfoLabel" type="Label" parent="CanvasLayer"]
-offset_left = 20.0
-offset_top = 20.0
-offset_right = 620.0
-offset_bottom = 120.0
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 1060.0
+offset_bottom = 118.0
 theme_override_font_sizes/font_size = 24
 text = "준비중"
+
+[node name="MobilePanel" type="Panel" parent="CanvasLayer"]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -164.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+
+[node name="BuildButton" type="Button" parent="CanvasLayer/MobilePanel"]
+offset_left = 12.0
+offset_top = 12.0
+offset_right = 260.0
+offset_bottom = 72.0
+theme_override_font_sizes/font_size = 24
+text = "🔧 자동 빌드/업글"
+
+[node name="NovaButton" type="Button" parent="CanvasLayer/MobilePanel"]
+offset_left = 12.0
+offset_top = 84.0
+offset_right = 260.0
+offset_bottom = 144.0
+theme_override_font_sizes/font_size = 24
+text = "⚡ NOVA"

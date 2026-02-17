@@ -12,6 +12,9 @@ extends Node3D
 @onready var ui_label: Label = $CanvasLayer/InfoLabel
 @onready var spawn_timer: Timer = $SpawnTimer
 @onready var wave_timer: Timer = $WaveTimer
+@onready var mobile_panel: Panel = $CanvasLayer/MobilePanel
+@onready var build_button: Button = $CanvasLayer/MobilePanel/BuildButton
+@onready var nova_button: Button = $CanvasLayer/MobilePanel/NovaButton
 
 var wave := 1
 var spawned_in_wave := 0
@@ -50,7 +53,10 @@ func _ready() -> void:
 	placed_turrets.resize(build_slots.size())
 	_build_turret_at_slot(0)
 
+	mobile_panel.visible = is_mobile_mode
 	if is_mobile_mode:
+		build_button.pressed.connect(_mobile_auto_build_or_upgrade)
+		nova_button.pressed.connect(_cast_nova_skill)
 		_apply_mobile_tuning()
 
 	_update_ui("Wave 1 시작")
@@ -226,7 +232,8 @@ func _process(delta: float) -> void:
 	var hp_text = "Base HP: %d" % int(base.hp)
 	var cd_text = "Nova: READY" if skill_cd <= 0.0 else "Nova: %.1fs" % skill_cd
 	if is_mobile_mode:
-		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\n왼쪽 터치: 자동 빌드/업글  |  오른쪽 터치: Nova" % [wave, score, gold, hp_text, cd_text]
+		nova_button.text = "⚡ NOVA READY" if skill_cd <= 0.0 else "⚡ NOVA %.1fs" % skill_cd
+		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\n아래 버튼으로 조작하세요" % [wave, score, gold, hp_text, cd_text]
 	else:
 		ui_label.text = "Wave %d | Score %d | Gold %d\n%s | %s\nBuild 1-6 (%dG) / Upgrade QWERTY (%dG) / Space Nova" % [wave, score, gold, hp_text, cd_text, turret_cost, turret_upgrade_cost]
 

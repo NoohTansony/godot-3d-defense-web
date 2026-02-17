@@ -11,14 +11,24 @@ var cooldown := 0.0
 var level := 1
 var bullet_damage := 10
 
+@onready var head_pivot: Node3D = $HeadPivot
+
 func _process(delta: float) -> void:
 	cooldown -= delta
 	var target = _find_target()
 	if target:
-		look_at(target.global_position, Vector3.UP)
+		_aim_at(target.global_position)
 		if cooldown <= 0.0:
 			_fire(target)
 			cooldown = fire_rate
+
+func _aim_at(target_pos: Vector3) -> void:
+	var dir = target_pos - global_position
+	dir.y = 0
+	if dir.length() < 0.001:
+		return
+	var yaw = atan2(dir.x, dir.z)
+	head_pivot.rotation.y = yaw
 
 func _find_target() -> Node3D:
 	var best: Node3D = null
@@ -36,7 +46,7 @@ func _fire(target: Node3D) -> void:
 	if bullet_scene == null:
 		return
 	var b = bullet_scene.instantiate()
-	b.global_position = global_position + Vector3(0, 0.5, 0)
+	b.global_position = head_pivot.global_position + (-head_pivot.global_basis.z) * 0.7 + Vector3(0, 0.12, 0)
 	b.target = target
 	b.set("damage", bullet_damage)
 	get_tree().current_scene.add_child(b)

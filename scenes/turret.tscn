@@ -1,16 +1,45 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scripts/turret.gd" id="1"]
 [ext_resource type="PackedScene" path="res://scenes/bullet.tscn" id="2"]
 
 [sub_resource type="CylinderMesh" id="1"]
-height = 1.2
-bottom_radius = 0.4
-top_radius = 0.25
+height = 0.5
+bottom_radius = 0.55
+top_radius = 0.5
+
+[sub_resource type="BoxMesh" id="2"]
+size = Vector3(0.7, 0.45, 0.7)
+
+[sub_resource type="BoxMesh" id="3"]
+size = Vector3(0.18, 0.18, 0.95)
+
+[sub_resource type="StandardMaterial3D" id="4"]
+albedo_color = Color(0.18, 0.22, 0.28, 1)
+metallic = 0.45
+roughness = 0.35
+
+[sub_resource type="StandardMaterial3D" id="5"]
+albedo_color = Color(0.33, 0.77, 1, 1)
+emission_enabled = true
+emission = Color(0.08, 0.2, 0.28, 1)
 
 [node name="Turret" type="Node3D"]
 script = ExtResource("1")
 bullet_scene = ExtResource("2")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="BaseMesh" type="MeshInstance3D" parent="."]
 mesh = SubResource("1")
+material_override = SubResource("4")
+
+[node name="HeadPivot" type="Node3D" parent="."]
+position = Vector3(0, 0.38, 0)
+
+[node name="HeadMesh" type="MeshInstance3D" parent="HeadPivot"]
+mesh = SubResource("2")
+material_override = SubResource("5")
+
+[node name="Barrel" type="MeshInstance3D" parent="HeadPivot"]
+position = Vector3(0, 0, -0.55)
+mesh = SubResource("3")
+material_override = SubResource("4")
