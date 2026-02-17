@@ -1,0 +1,77 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/base.gd" id="2"]
+[ext_resource type="PackedScene" path="res://scenes/enemy.tscn" id="3"]
+[ext_resource type="PackedScene" path="res://scenes/turret.tscn" id="4"]
+
+[sub_resource type="Environment" id="1"]
+background_mode = 1
+background_color = Color(0.09, 0.12, 0.16, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.5, 0.53, 0.6, 1)
+
+[sub_resource type="StandardMaterial3D" id="2"]
+albedo_color = Color(0.18, 0.45, 0.22, 1)
+
+[sub_resource type="PlaneMesh" id="3"]
+size = Vector2(50, 50)
+
+[sub_resource type="CylinderMesh" id="4"]
+height = 1.0
+bottom_radius = 1.2
+top_radius = 1.2
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1")
+enemy_scene = ExtResource("3")
+turret_scene = ExtResource("4")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation = Vector3(-0.9, 0.4, 0)
+light_energy = 1.2
+
+[node name="Camera3D" type="Camera3D" parent="."]
+position = Vector3(0, 23, 20)
+rotation = Vector3(-0.75, 0, 0)
+current = true
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+mesh = SubResource("3")
+material_override = SubResource("2")
+
+[node name="Base" type="Node3D" parent="."]
+script = ExtResource("2")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Base"]
+mesh = SubResource("4")
+
+[node name="HPLabel3D" type="Label3D" parent="Base"]
+position = Vector3(0, 1.8, 0)
+pixel_size = 0.01
+text = "BASE HP: 100"
+
+[node name="Turrets" type="Node3D" parent="."]
+
+[node name="Enemies" type="Node3D" parent="."]
+
+[node name="SpawnTimer" type="Timer" parent="."]
+one_shot = false
+autostart = false
+
+[node name="WaveTimer" type="Timer" parent="."]
+one_shot = true
+autostart = false
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="InfoLabel" type="Label" parent="CanvasLayer"]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 620.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 24
+text = "준비중"

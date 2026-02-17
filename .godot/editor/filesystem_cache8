@@ -1,0 +1,16 @@
+ea4bc82a6ad023ab7ee23ee620429895
+::res://::1771337904
+export_presets.cfg::TextFile::-1::1771337897::0::1::::<><>::
+README.md::TextFile::-1::1771337654::0::1::::<><>::
+::res://dist/::1771337904
+::res://scenes/::1771337643
+bullet.tscn::PackedScene::-1::1771337624::0::1::::<><>::res://scripts/bullet.gd
+enemy.tscn::PackedScene::-1::1771337617::0::1::::<><>::res://scripts/enemy.gd
+main.tscn::PackedScene::-1::1771337643::0::1::::<><>::res://scripts/main.gd<>res://scripts/base.gd<>res://scenes/enemy.tscn<>res://scenes/turret.tscn
+turret.tscn::PackedScene::-1::1771337629::0::1::::<><>::res://scripts/turret.gd<>res://scenes/bullet.tscn
+::res://scripts/::1771337612
+base.gd::GDScript::-1::1771337591::0::1::::<>Node3D<>::
+bullet.gd::GDScript::-1::1771337612::0::1::::<>Area3D<>::
+enemy.gd::GDScript::-1::1771337647::0::1::::<>CharacterBody3D<>::
+main.gd::GDScript::-1::1771337586::0::1::::<>Node3D<>::
+turret.gd::GDScript::-1::1771337605::0::1::::<>Node3D<>::
